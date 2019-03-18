@@ -1,0 +1,12 @@
+== Bootstrap
+
+=== New in Bootstrap 4
+
+* Flex layout / Flexbox
+* Cards
+* Changes to the Navbar
+* Form Changes
+* Sass: Moved from Less to Sass
+* Dropped support for IE 8 and 9
+* Glyphicons, Font-awesome recommended
+* Sizing and spacing classes

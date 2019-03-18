@@ -1,0 +1,57 @@
+== Notes
+
+=== Roles
+Create an empty role from template
+
+.Create role from Ansible Galaxy
+----
+ansible galaxy init <rolename>
+----
+
+=== Ansible Facts
+Get Ansible facts:
+
+----
+ansible -m setup <nodename> | view -
+----
+
+Use it like follows:
+
+.Example task
+----
+- name: ensure mysql listening on eth1
+  lineinfile:
+    dest: /etc/mysql/my.cnf
+    regexp: "^bind-address"
+    line: "bind-address = {{ ansible_eth1.ipv4.address }}"
+  notify: restart mysql
+----
+
+=== Handlers
+Handlers are lists of tasks, not really any different from regular tasks, that are referenced by a globally unique name, and are notified by notifiers. If nothing notifies a handler, it will not run. Regardless of how many tasks notify a handler, it will run only once, after all of the tasks complete in a particular play.
+
+
+=== Ansible Vault
+
+.Edit encrypted password file:
+----
+ansible-vault --ask-vault-pass group_vars/all/vault edit
+----
+
+
+=== Execution
+
+.List all tasks of a playbook
+----
+ansible-playbook site.yml --list-tasks
+----
+
+.Start at a specific task
+----
+ansible-playbook site.yml --start-at-task "copy demo app source"
+----
+
+.Step though tasks in playbook
+----
+ansible-playbook site.yml --step
+----

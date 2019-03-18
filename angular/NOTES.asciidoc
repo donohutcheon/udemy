@@ -1,0 +1,379 @@
+== Notes
+
+=== Introduction
+.Install angular
+----
+sudo npm install -g @angular/cli@latest
+# or
+sudo npm install -g @angular/cli
+----
+
+.Start a new project
+----
+ng new my-first-app
+----
+
+.Run the server:
+----
+ng serve
+----
+
+The default port is 4200
+
+http://localhost:4200
+
+=== Basics
+
+==== Two way data binding
+.
+`app.components.ts` contains the databinding variables used in the html template.
+
+==== Directives and Form Binding
+
+Add the following to `app.module.ts`:
+
+----
+import { FormsModule } from '@angular/forms';
+----
+
+and add `FormsModule` to the `imports` array:
+----
+  imports: [
+    BrowserModule,
+    FormsModule
+  ],
+----
+
+The name variable is then bound to the input of the text field:
+----
+<input type="text" [(ngModel)]="name">
+<p>{{ name }}</p>
+----
+
+==== Angular CLI
+
+1. Compiles the TypeScript to JavaScript that runs in the browser.
+2. Type checking done at design time.
+
+==== Install Bootstrap
+
+----
+npm install --save bootstrap@3
+----
+
+Add entry to angular.json in the styles array:
+----
+"node_modules/bootstrap/dist/css/bootstrap.min.css",
+----
+
+so that it looks as follows:
+----
+...
+            "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "src/styles.css"
+            ],
+...
+----
+
+`src/styles.css` is a global css file, it should be beneath the bootstrap css file so that it can override css settings.
+
+==== main.ts
+
+`main.ts` is the first file to be executed.
+
+`enableProdMode();` turns warnings on or off depending if the application is running in production mode.
+----
+if (environment.production) {
+  enableProdMode();
+}
+----
+
+The following line bootstraps the Angular application by passing the AppModule to the method.  AppModule refers to the `app.module.ts` file.
+----
+platformBrowserDynamic().bootstrapModule(AppModule)
+  .catch(err => console.error(err));
+----
+
+AppModule then loads the AppComponent from
+----
+  bootstrap: [AppComponent]
+----
+
+The selectors are then loaded from the component.
+
+=== Components
+
+* `app.component` is the root component that holds the entire application.  Other components are nested inside the app component.
+
+* Each component has its own template, html code, styling and its own business logic.
+
+* Split up your application into reusable parts.
+
+* Register components in the parent component in the declarations array and import the corresponding `component.ts` file. 
+
+* imports allows us to import additional modules into the component.
+
+==== Create components via the CLI
+
+----
+ng generate component <component name>
+# or
+ng g c <component name>
+----
+
+* Each component requires at minimum, either a template or a templateUrl to be defined in the @Component decorator.
+
+* Selectors and styles can be omitted, there are other ways to load components without using their selectors.
+
+* `styleUrls` is an array because you can reference multiple external css files.
+
+* `styles` is an array of css strings.
++
+.Example:
+----
+styles: [`
+    h3 {
+        color: darkblue
+    }
+`]
+----
+
+==== Selectors
+
+* Selectors aren't limited to selecting by elements only 
+
+* Enclose the selector in square braces to select elements by attribute.
+For instance:
+
+.component.ts file:
+----
+selector: '[app-servers]',
+----
+
+component.html
+----
+<div app-servers></div>
+----
+
+* Another alternative is to select by class, with a dot at the beginning, prefixed by `.`
+
+.component.ts file:
+----
+selector: '.app-servers',
+----
+
+component.html
+----
+<div class="app-servers"></div>
+----
+
+=== Databinding
+
+Output Data
+
+* String Interpolation `{{ data }}`
+
+* Property Binding `[property]="data"`
+
+React to (User) Events
+* Event Binding `(event) = "expression"`
+
+Combination of Both: Two-way-binding `[(ngModel)]="data"`
+
+=== Directives
+
+.Directives are instructions in the DOM
+
+Components are instructions in the DOM, components are directives, but with a template.
+
+The following directive could be a directive without a template.
+----
+<p appTurnGreen>Receives a green background!</p>
+----
+
+----
+@Directive({
+    selector: '[appTurnGreen]'
+})
+export class TurnGreenDirective {
+    ...
+}
+----
+
+==== Built in Directives
+
+===== *ngIf
+
+** The asterisk indicates that the directive is a structural directive that will change the structure of the DOM.
+
+.Example 1:
+----
+<p *ngIf="serverCreated">Server was created, server name is {{ serverName }}</p>
+----
+
+.Example 2: If then else scenario
+----
+<p *ngIf="serverCreated; else noServer">Server was created, server name is {{ serverName }}</p>
+<ng-template #noServer><p>No server has been created!</p>
+</ng-template>
+----
+
+===== ngStyle
+
+Unlike structural directives, attribute directives don't add or remove elements.  They only change the element where they are placed on.
+
+.Example: Using ngStyle to set the background colour of an element.
+----
+<p [ngStyle]="{'background-color': getColour()}" >{{ 'Server' }} with ID {{ serverId }} is {{ getServerStatus() }} </p>
+----
+
+===== ngClass
+
+ngClass allows us to dynamically add or remove css classes.
+
+.Example:
+----
+<p [ngClass]="{'online': serverStatus === 'online'}">
+----
+.Where, the Component Style is as follows:
+----
+@Component({
+    selector: 'app-server',
+    templateUrl: './server.component.html',
+    styles: [`
+    .online {
+        color: white
+    }
+    `]
+})
+----
+
+===== ngFor
+
+*ngFor is a structural directive, so it is prefixed by an asterisk.
+
+.Example:
+----
+<app-server *ngFor="let server of servers; let i = index"></app-server>
+----
+
+.Where servers is an array of strings:
+----
+servers = ['Staging', 'Test', 'Production'];
+----
+
+=== Binding to Custom Properties
+
+`@Input()` from `'@angular/core'` allows us to pass properties from parent components into the component. `@Input()` takes an optional string argument which specifies the property name with which to bind to.
+
+For instance where the parent component contains an array of objects, we can use `*ngFor` directive to iterate over the array and pass the individual item into the component.
+
+.Example: The element property is decorated with @Input decorator and we specify the structure of the object.
+----
+...
+export class ServerElementComponent implements OnInit {
+  @Input() element: {type: string, name: string, content: string};
+  
+  constructor() { }
+...
+----
+
+.Example (cont.) We use property binding to bind element to serverElement iterator. 
+----
+<app-server-element 
+  *ngFor="let serverElement of serverElements"
+  [element]="serverElement">
+</app-server-element>
+----
+
+=== Binding to Custom Events
+
+Converse to the above example where properties are passed from a parent component to its child, _binding to custom events_ involves triggering events in the parent component to let it know that the property has changed.
+
+.Example @Output is used in conjunction with EventEmitter objects to pass information about the event onwards
+----
+  @Output() serverCreated = new EventEmitter<{serverName: string, serverContent: string}>();
+  @Output() blueprintCreated = new EventEmitter<{serverName: string, serverContent: string}>();
+  @Output() testCreated = new EventEmitter<{serverName: string, serverContent: string}>();
+----
+
+.Example (cont.) The child component's EventEmitter objects are mapped to event functions in the parent Component.
+----
+  <app-cockpit 
+    (serverCreated)="onServerAdded($event)"
+    (blueprintCreated)="onBlueprintAdded($event)"
+    (testCreated)="onTestAdded($event)"></app-cockpit>
+----
+
+.Example (cont.) The parent component declares event handler functions to receive the event and the associated context.
+----
+  onServerAdded(serverData: {serverName: string, serverContent: string}) {
+    this.serverElements.push({
+      type: 'server',
+      name: serverData.serverName,
+      content: serverData.serverContent
+    });
+  }
+----
+
+TIP: As with @Input(string), @Output also accepts an optional string argument which specifies the property name with which to bind to.
+
+=== View Encapsulation
+
+The CSS styles specified in @Component metadata apply only within the template of that component. They are not inherited by any components nested within the template nor by any content projected into the component. Angular achieves this style scoping by applying unique attributes to elements which then allows it to map styles the specific component in question.
+
+----
+<p>
+  <em _ngcontent-c2>Lorem ipsum dolor sit amet...</em _ngcontent-c2>
+</p>
+----
+
+View Encapsulation mode be set via the @Component decorator.
+
+----
+encapsulation: ViewEncapsulation.Emulated (default)
+encapsulation: ViewEncapsulation.None
+encapsulation: ViewEncapsulation.Native
+encapsulation: ViewEncapsulation.Shadow
+----
+
+==== ViewEncapsulation.Emulated
+
+Default mode.
+
+==== ViewEncapsulation.None
+
+No meta-attributes attributes added to the component's elements, however in this case, the components CSS will have global scope and will be applied to all elements in the application.
+
+==== ViewEncapsulation.Native
+
+Deprecated
+
+==== ViewEncapsulation.ShadowDom
+
+Shadow Dom describes a method of combining multiple DOM trees into one hierarchy and how these trees interact with each other within a document, thus enabling better composition of the DOM.
+
+=== Local References in Templates
+
+Instead of two-way binding, local references provide functionality to fetch data directly from the component template into the component typescript class.
+
+Local references can only be used inside the template and not inside the component typescript.  The template passes the local reference into the typescript.
+
+.Example component template file:
+----
+<!-- <input type="text" class="form-control" [(ngModel)]="newServerName"> -->
+    <input 
+      type="text" 
+      class="form-control" 
+      #serverNameInput>      
+----
+
+.Example (cont.) component typescript file:
+----
+  onAddServer(nameInput: HTMLInputElement) {
+    console.debug(nameInput);
+    console.debug(nameInput.value);
+  }
+----
+
